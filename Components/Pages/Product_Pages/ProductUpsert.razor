@@ -1,0 +1,155 @@
+﻿@page "/product/create"
+@page "/product/update/{id:int}"
+@inject IProductRepository _productRepository
+@inject ICategoryRepository _categoryRepository
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _JS
+
+
+@if (IsProcessing)
+{
+    <div class="position-absolute w-75 h-75 d-flex flex-column align-items-center bg-white justify-content-center">
+        <img src="/images/loading.gif" alt="loading" />
+    </div>
+}
+else
+{
+
+    <div class="card shadow border-0 mt-4">
+        <div class="card-header bg-black bg-gradient m-lg-0 py-3">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h2 class="py-2 text-white"> @(Id==0?"Create":"Update") Product</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <EditForm Model="Product" FormName="ProductUpsertForm" OnValidSubmit="UpsertProduct">
+                <DataAnnotationsValidator />
+
+                <div class="border p-3 mt-4">
+
+                    <div class="form-floating mb-3 col-12">
+                        <InputText @bind-Value="Product.Name" class="form-control" id="Name" placeholder="" />
+                        <label for="Name">Name</label>
+                        <ValidationMessage For="@(() => Product.Name)" />
+                    </div>
+
+                    <div class="form-floating mb-3 col-12">
+                        <InputText @bind-Value="Product.Description" class="form-control" id="Desc" placeholder="" />
+                        <label for="Desc">Description</label>
+                        <ValidationMessage For="@(() => Product.Description)" />
+                    </div>
+
+                    <div class="form-floating mb-3 col-12">
+                        <InputNumber @bind-Value="Product.Price" class="form-control" id="Price" placeholder="" />
+                        <label for="Price">Price</label>
+                        <ValidationMessage For="@(() => Product.Price)" />
+                    </div>
+
+                    <div class="form-floating mb-3 col-12">
+                        <InputSelect @bind-Value="Product.CategoryId" class="form-select" id="Category" placeholder="" >
+                            <option value="0" disabled selected>---Choose a Category---</option>
+                            @foreach (var category in _categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </InputSelect>
+                        <label for="Category">Category</label>
+                        <ValidationMessage For="@(() => Product.CategoryId)" />
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-6 col-md-3">
+                            <button type="submit" class="btn btn-primary form-control" disabled="@IsProcessing">
+                                <i class="bi bi-floppy2-fill"></i> 
+                                Update    
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="product" class="btn btn-secondary form-control" disabled="@IsProcessing">
+                                <i class="bi bi-arrow-bar-left"></i> 
+                                Back to List    
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </EditForm>
+        </div>
+    </div>
+}
+
+
+
+@code {
+
+    [Parameter] public int Id { get; set; }
+    [SupplyParameterFromForm] private Product Product { get; set; } = new Product();
+    private bool IsProcessing { get; set; } = true;
+
+    private IEnumerable<Category> _categories { get; set; } = new List<Category>();
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+            await LoadProductAndCategoryList();
+            IsProcessing = false;
+
+            StateHasChanged(); // This will re-render the component after the data is loaded
+        }
+    }
+
+    private async Task LoadProductAndCategoryList()
+    {
+        if (Id > 0)
+        {
+            Product = await _productRepository.GetAsync(Id);
+        }
+        _categories = await _categoryRepository.GetAllAsync();
+    }
+
+    private async Task UpsertProduct()
+    {
+        IsProcessing = true;
+        if(Product.Id == 0)
+        {
+            // Create new product
+            await _productRepository.CreateAsync(Product);
+            await _JS.ToastrSuccess("Product Created Successfully");
+        }
+        else
+        {
+            // Update existing product
+            await _productRepository.UpdateAsync(Product);
+            await _JS.ToastrSuccess("Product Updated Successfully");
+        }
+
+        IsProcessing = false;
+        _navigationManager.NavigateTo("product");
+    }
+
+}
+
+
+
+<style>
+    /* Remove arrows from number input - Chrome, Safari, Edge */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Remove arrows from number input - Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
