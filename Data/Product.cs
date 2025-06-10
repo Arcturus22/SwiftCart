@@ -12,9 +12,11 @@ namespace SwiftCart.Data
         public string? Description { get; set; }
         public string? SpecialTag { get; set; }
 
+        [Required(ErrorMessage = "Category is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid category.")]
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
-        public Category? Category { get; set; }
+        public Category Category { get; set; }
 
         public string? ImageUrl { get; set; }
     }

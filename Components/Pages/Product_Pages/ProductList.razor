@@ -1,11 +1,12 @@
 ﻿@page "/product"
+@using System.Globalization
+@using System.Text.Json
 @inject IProductRepository _productRepository
 @inject IJSRuntime _JS
 
 <BsModal OnModalConfirmation="ConfirmDeleteClick" ButtonBootStrapStyle="btn-danger"
-    ButtonText="Delete"
-    Title="Are you sure you want to delete this Product"
-></BsModal>
+         ButtonText="Delete"
+         Title="Are you sure you want to delete this Product"></BsModal>
 
 
 @if (IsProcessing)
@@ -28,7 +29,8 @@ else
             <div class="row pb-3">
                 <div class="col-12 text-end">
                     <a href="/product/create" class="btn btn-lg btn-secondary" style="width:250px">
-                        <i class="bi bi-plus-square-fill"></i> Add new Product</a>
+                        <i class="bi bi-plus-square-fill"></i> Add new Product
+                    </a>
                 </div>
             </div>
             @if (Products.Any())
@@ -37,17 +39,24 @@ else
                     <thead>
                         <tr>
                             <th>Product Name</th>
-                            <th></th>
+                            <th>Price</th>
+                            <th>Special Tag</th>
+                            <th>Category</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var obj in Products)
                         {
+                            Console.WriteLine(JsonSerializer.Serialize(obj));
                             <tr>
                                 <td>@obj.Name</td>
+                                <td>@obj.Price.ToString("C", CultureInfo.GetCultureInfo("en-us")) </td>
+                                <td>@obj.SpecialTag</td>
+                                <td>@obj.Category.Name</td>
+
                                 <td>
                                     <a href="@($"/product/update/{obj.Id}")" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit </a>
-                                    <button class="btn btn-danger" @onclick="()=>HandleDelete(obj.Id)"><i class="bi bi-trash3-fill"></i> Delete </button>
+                                    <button class="btn btn-danger" @onclick="() => HandleDelete(obj.Id)"><i class="bi bi-trash3-fill"></i> Delete </button>
                                 </td>
                             </tr>
                         }
@@ -105,19 +114,19 @@ else
         _JS.InvokeVoidAsync("ShowConfirmationModal");
     }
 
-    private async Task ConfirmDeleteClick( bool isConfirmed)
+    private async Task ConfirmDeleteClick(bool isConfirmed)
     {
         IsProcessing = true;
         await _JS.InvokeVoidAsync("HideConfirmationModal");
         if (isConfirmed && DeleteProductId != 0)
         {
             var result = await _productRepository.DeleteAsync(DeleteProductId);
-            if(result)
-                _JS?.ToastrSuccess("Product Deleted Successfully"); 
+            if (result)
+                _JS?.ToastrSuccess("Product Deleted Successfully");
             else
                 _JS?.ToastrError("Product Deletion Failed. Please try again later.");
 
-                await LoadProducts();
+            await LoadProducts();
 
         }
 

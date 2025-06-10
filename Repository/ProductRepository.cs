@@ -56,7 +56,9 @@ namespace SwiftCart.Repository
         }
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-           return await _db.Product.ToListAsync(); 
+           return await _db.Product
+                                    .Include(p=>p.Category) // Include the Category navigation property
+                                    .ToListAsync(); 
         }
 
 
