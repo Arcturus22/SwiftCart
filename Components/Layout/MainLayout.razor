@@ -1,28 +1,30 @@
 ﻿@using SwiftCart.Utility
 @inherits LayoutComponentBase
+@inject AuthenticationStateProvider _authenticationStateProvider
 
-<div class="page bg-danger-subtle">
+<div class="page ">
+
+    <AuthorizeView Roles="@SD.Role_Admin">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+    </AuthorizeView>
+
     @* <AuthorizeView>
         Any Authorized User
-    </AuthorizeView>
-    <AuthorizeView Roles="@SD.Role_Admin" >
-        ADMIN
     </AuthorizeView>
     <AuthorizeView Roles="@SD.Role_Customer">
         CUSTOMER
     </AuthorizeView> *@
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        @if (_navBarVisible)
+        {
+            <NavBar></NavBar>
+        }
 
-        <article class="content px-4">
-            @Body
-        </article>
+        @Body
     </main>
 </div>
 
@@ -31,3 +33,37 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private bool _navBarVisible;
+    protected override async Task OnInitializedAsync()
+    {
+        _navBarVisible = await ShowNavBar();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _navBarVisible = await ShowNavBar();
+    }
+
+    private async Task<bool> ShowNavBar()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        // var authenticated = user.Identity is not null && user.Identity.IsAuthenticated;
+        var authenticated = user.Identity?.IsAuthenticated ?? false;
+
+        if (!authenticated)
+        {
+            return true;
+        }
+
+        // Not to display to Admin users
+        if (!user.IsInRole(SD.Role_Admin))
+        {
+            return true;
+        }
+
+        return false;
+    }
+}

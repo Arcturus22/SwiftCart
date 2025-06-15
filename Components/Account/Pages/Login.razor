@@ -12,7 +12,7 @@
 
 <PageTitle>Log in</PageTitle>
 
-<div class="mt-5" style="100%">
+<div class="mt-5" style="h-100">
     <div class="h-100 d-flex align-items-center justify-content-center">
         <div class="card bg-light" style="min-width:28rem;">
             <div class="card-body">
@@ -26,12 +26,12 @@
                     <hr />
                     <ValidationSummary class="text-danger" role="alert" />
                     <div class="form-floating mb-3">
-                        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="" />
                         <label for="Input.Email" class="form-label">Email</label>
                         <ValidationMessage For="() => Input.Email" class="text-danger" />
                     </div>
                     <div class="form-floating mb-3">
-                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="" />
                         <label for="Input.Password" class="form-label">Password</label>
                         <ValidationMessage For="() => Input.Password" class="text-danger" />
                     </div>

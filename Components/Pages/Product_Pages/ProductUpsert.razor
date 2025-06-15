@@ -15,7 +15,7 @@
 else
 {
 
-    <div class="card shadow border-0 mt-4">
+    <div class="card shadow border-0 m-4">
         <div class="card-header bg-black bg-gradient m-lg-0 py-3">
             <div class="row">
                 <div class="col-12 text-center">
@@ -68,11 +68,11 @@ else
 
                     <div class="form-floating mb-3 col-12">
 
-                        @if(Product.ImageUrl == null)
+                        @if (Product.ImageUrl == null)
                         {
-                            
-                        <InputFile OnChange="LoadFiles" class="form-control" id="customFile" accept="image/x-png,image/jpeg"></InputFile>
-                        <label for="customFile">Upload Image</label>
+
+                            <InputFile OnChange="LoadFiles" class="form-control" id="customFile" accept="image/x-png,image/jpeg"></InputFile>
+                            <label for="customFile">Upload Image</label>
 
                         }
 
@@ -207,7 +207,10 @@ else
         var filePathToDelete = Path.Combine(_directoryPath, fileToDelete);
 
         if (!File.Exists(filePathToDelete))
+        {
+            Product.ImageUrl = null; 
             return;
+        }
 
         File.Delete(filePathToDelete);
         Product.ImageUrl = null;

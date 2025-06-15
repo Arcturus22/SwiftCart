@@ -1,4 +1,6 @@
 .page {
+/*    height: 100vh;
+background-color:salmon ;*/
     position: relative;
     display: flex;
     flex-direction: column;
