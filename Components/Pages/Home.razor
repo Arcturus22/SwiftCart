@@ -22,6 +22,7 @@ else
 
                 <div class="d-flex align-items-center" style="width: 100%;">
                     <input type="text" class="form-control rounded-pill"
+                           @bind:event="oninput" @bind:get="_searchText" @bind:set="FilterProductBySearchText"
                            placeholder="Search for Food Items!"
                            style="width: 100%; padding: 20px;">
                     <span style="position: relative; left: -43px;"><i class="bi bi-search"></i></span>
@@ -34,18 +35,18 @@ else
             <ul class="nav nav-underline justify-content-center mb-2">
 
                 <li class="nav-item">
-                    <span class="nav-link" href="#" style="cursor: pointer">All</span>
+                    <span class="nav-link @GetActiveTabClass(0)" href="#" style="cursor: pointer" @onclick="() => FilterProductsByCategory(0)">All</span>
                 </li>
                 @foreach (var cat in Categories)
                 {
                     <li class="nav-item">
-                        <span class="nav-link" href="#" style="cursor: pointer">@cat.Name</span>
+                        <span class="nav-link @GetActiveTabClass(cat.Id)" href="#" style="cursor: pointer" @onclick="() => FilterProductsByCategory(cat.Id)">@cat.Name</span>
                     </li>
                 }
             </ul>
             <div class="row mt-4 mx-1">
 
-                @foreach (var prod in Products)
+                @foreach (var prod in FilteredProducts)
                 {
 
                     <div class="col-12 col-md-6 col-lg-4 pe-3 mb-5">
@@ -90,7 +91,10 @@ else
 @code {
     private IEnumerable<Product> Products = new List<Product>();
     private IEnumerable<Category> Categories = new List<Category>();
+    private IEnumerable<Product> FilteredProducts = new List<Product>();
     private bool IsProcessing { get; set; } = true;
+    private int _selectedCategoryId = 0;
+    private string _searchText = "";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -106,7 +110,46 @@ else
     {
         Products = await _productRepository.GetAllAsync();
         Categories = await _categoryRepository.GetAllAsync();
+        FilterProductsByCategory(0);
     }
 
+    private void FilterProductsByCategory(int categoryId)
+    {
+        if (categoryId == 0)
+        {
+            FilteredProducts = Products;
+            _selectedCategoryId = categoryId;
+            return;
+        }
+        else
+        {
+            FilteredProducts = Products.Where(u => u.CategoryId == categoryId).ToList();
+            _selectedCategoryId = categoryId;
+            _searchText = String.Empty;
+        }
 
+    }
+
+    private void FilterProductBySearchText(string newValueOfSearchText)
+    {
+        if (string.IsNullOrWhiteSpace(newValueOfSearchText))
+        {
+            FilteredProducts = Products;
+        }
+        else
+        {
+            // FilteredProducts = Products
+            //                         .Where(p => p.Name.Contains(newValueOfSearchText, StringComparison.OrdinalIgnoreCase) ||
+            //                                        p.Description.Contains(newValueOfSearchText, StringComparison.OrdinalIgnoreCase)).ToList();
+            FilteredProducts = Products
+                                    .Where(p => p.Name.Contains(newValueOfSearchText, StringComparison.InvariantCultureIgnoreCase) ||
+                                                (p.Description?.Contains(newValueOfSearchText, StringComparison.InvariantCultureIgnoreCase) ?? false)).ToList();
+        }
+        _searchText = newValueOfSearchText;
+    }
+
+    private string GetActiveTabClass(int categoryId)
+    {
+        return categoryId == _selectedCategoryId ? "active" : string.Empty;
+    }
 }
