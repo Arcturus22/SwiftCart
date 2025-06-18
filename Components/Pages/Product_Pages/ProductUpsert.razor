@@ -37,7 +37,7 @@ else
                     </div>
 
                     <div class="form-floating mb-3 col-12">
-                        <InputText @bind-Value="Product.Description" class="form-control" id="Desc" placeholder="" />
+                        <InputTextArea @bind-Value="Product.Description" class="form-control large-textarea" id="Desc" placeholder="" />
                         <label for="Desc">Description</label>
                         <ValidationMessage For="@(() => Product.Description)" />
                     </div>
@@ -232,6 +232,11 @@ else
     /* Remove arrows from number input - Firefox */
     input[type=number] {
         -moz-appearance: textfield;
+    }
+
+    .large-textarea {
+        height: 200px;
+        resize: vertical; /* Optional: allows manual resizing */
     }
 </style>
 

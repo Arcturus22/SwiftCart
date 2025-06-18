@@ -65,5 +65,16 @@ namespace SwiftCart.Repository
             return await _db.SaveChangesAsync() > 0; // Returns true if any changes were made
         }
 
+        public async Task<int> GetTotalCartCountAsync(string? userId)
+        {
+            int cartCount = 0;  
+            var cartItems = await _db.ShoppingCart.Where(cart => cart.UserId == userId).ToListAsync();
+
+            foreach(var item in cartItems)
+            {
+                cartCount += item.Count;
+            }
+            return cartCount;
+        }
     }
 }

@@ -8,6 +8,7 @@ namespace SwiftCart.Repository.IRepository
         public Task<IEnumerable<ShoppingCart>> GetAllAsync(string? userId);
         public Task<bool> ClearCartAsync(string? userId);
 
+        public Task<int> GetTotalCartCountAsync(string? userId); 
 
     }
 }

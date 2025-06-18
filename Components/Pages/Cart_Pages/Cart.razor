@@ -2,11 +2,13 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using System.Globalization
+@using SwiftCart.Services
 @using SwiftCart.Utility
 @inject AuthenticationStateProvider _AuthenticationStateProvider
 @inject IShoppingCartRepository _cartRepository
 @inject IOrderRepository _orderRepository
 @inject NavigationManager _navigationManager
+@inject SharedStateService _sharedStateService
 @attribute [Authorize]
 
 @if (IsProcessing)
@@ -178,6 +180,7 @@ else
     private async Task UpdateCartItem(int productId, int updateBy)
     {
         var result = await _cartRepository.UpdateCartAsync(OrderHeader.UserId, productId, updateBy);
+        _sharedStateService.TotalCartCount = await _cartRepository.GetTotalCartCountAsync(OrderHeader.UserId);
         await LoadCart();
     }
 

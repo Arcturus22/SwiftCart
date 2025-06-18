@@ -6,6 +6,7 @@ using SwiftCart.Components.Account;
 using SwiftCart.Data;
 using SwiftCart.Repository;
 using SwiftCart.Repository.IRepository;
+using SwiftCart.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddSingleton<SharedStateService>();
 
 builder.Services.AddAuthentication(options =>
     {

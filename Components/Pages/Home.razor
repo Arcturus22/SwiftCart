@@ -1,12 +1,13 @@
 ﻿@page "/"
 @using System.Globalization
+@using SwiftCart.Services
 @inject AuthenticationStateProvider _AuthenticationStateProvider
 @inject IJSRuntime _JS
 @inject NavigationManager _NavigationManager
 @inject IProductRepository _productRepository
 @inject ICategoryRepository _categoryRepository
 @inject IShoppingCartRepository _cartRepository
-
+@inject SharedStateService _sharedStateService
 
 <PageTitle>Home</PageTitle>
 
@@ -172,9 +173,11 @@ else
         }
         else
         {
+            var userId = user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value;
             // Add Item to Cart
             var result = await 
-                        _cartRepository.UpdateCartAsync(user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value, product.Id, 1);
+                        _cartRepository.UpdateCartAsync(userId, product.Id, 1);
+            _sharedStateService.TotalCartCount = await _cartRepository.GetTotalCartCountAsync(userId);
 
             if (result)
             {
