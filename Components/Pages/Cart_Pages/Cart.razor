@@ -1,7 +1,187 @@
 ﻿@page "/cart"
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using System.Globalization
+@inject AuthenticationStateProvider _AuthenticationStateProvider
+@inject IShoppingCartRepository _cartRepository
+@attribute [Authorize]
 
-<h3>Cart</h3>
+@if (IsProcessing)
+{
+    <div class="position-absolute w-100 vh-100 d-flex flex-column align-items-center bg-white justify-content-center">
+        <img src="/images/loading.gif" alt="loading" />
+    </div>
+}
+else
+{
+    @if (ShoppingCarts.Any())
+    {
+
+        <div class="row w-100">
+            <div class="col-lg-6 col-12">
+                <div class="container p-4 m-2">
+                    <h4 class="text-center text-success display-6">
+                        Cart Summary
+                    </h4>
+
+                    @foreach (var cartItem in ShoppingCarts)
+                    {
+
+                        <div class="d-flex p-2 m-2">
+                            <div class="card flex-row w-100">
+                                <img class="card-img-left" src="@(cartItem.Product.ImageUrl ?? "/images/default.png")" style="width: 120px;">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h4 class="">
+                                            @cartItem.Product.Name
+                                        </h4>
+                                        <h4>
+                                            @cartItem.Product.Price.ToString("C", CultureInfo.GetCultureInfo("en-us"))
+                                        </h4>
+                                    </div>
+                                    <div class="flex-fill">
+                                        <h4 class="text-danger">
+                                            @((cartItem.Product.Price * cartItem.Count).ToString("C", CultureInfo.GetCultureInfo("en-us")))
+                                        </h4>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex justify-content-between g-0">
+                                            <span @onclick="() => UpdateCartItem(cartItem.Product.Id, -1)">
+                                                <i class="bi bi-dash-circle-fill btn text-secondary"></i>
+                                            </span>
+                                            <span class="ml-1 me-1">
+                                                <b class="lead"> @cartItem.Count</b>
+                                            </span>
+                                            <span @onclick="() => UpdateCartItem(cartItem.Product.Id, 1)">
+                                                <i class="bi bi-plus-circle-fill btn text-secondary"></i>
+                                            </span>
+                                        </div>
+                                        <button class="btn btn-danger" @onclick="() => UpdateCartItem(cartItem.Product.Id, -1000000)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+            <div class="col-lg-6 col-12 p-4">
+                <div class="card">
+                    <div class="card-header text-success text-center display-6">
+                        Pickup Details
+                    </div>
+                    <EditForm Model="OrderHeader" FormName="CartForm" OnValidSubmit="ProcessOrderCreation">
+                        <DataAnnotationsValidator />
+                        <div class="card-body">
+
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="OrderHeader.Name" type="text" id="Name" placeholder="" class="form-control" />
+                                <label for="Name" class="form-label"> Name </label>
+                                <ValidationMessage For="() => OrderHeader.Name" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="OrderHeader.Email" type="text" id="Email" placeholder="" class="form-control " />
+                                <label for="Email" class="form-label">Email Address</label>
+                                <ValidationMessage For="() => OrderHeader.Email" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="OrderHeader.PhoneNumber" id="PhNo" type="text" class="form-control" placeholder="" />
+                                <label for="PhNo" class="form-label">Phone Number</label>
+                                <ValidationMessage For="() => OrderHeader.PhoneNumber" />
+                            </div>
+
+                            <div class="card mt-4 bg-light">
+                                <div class="card-body">
+                                    <h4>
+                                        Grand Total: @OrderHeader.OrderTotal.ToString("C", CultureInfo.GetCultureInfo("en-us"))
+                                    </h4>
+                                    <h4>
+                                        No. of Items: @TotalItems
+                                    </h4>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success m-4">
+                            Looks Good? Place Order!
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="p-4">
+            <h4 class="text-center alert alert-warning display-6">
+                Your cart is empty! Please add some products to your cart.
+            </h4>
+        </div>
+
+    }
+}
 
 @code {
+    private IEnumerable<ShoppingCart> ShoppingCarts { get; set; } = new List<ShoppingCart>();
+    private bool IsProcessing { get; set; } = true;
+    [SupplyParameterFromForm] public OrderHeader OrderHeader { get; set; } = new OrderHeader();
+    private int TotalItems { get; set; } = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        OrderHeader.Email = user.FindFirst(claim => claim.Type == ClaimTypes.Email)?.Value ?? string.Empty;
+        OrderHeader.UserId = user.FindFirst(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadCart();
+            IsProcessing = false;
+            StateHasChanged(); // Trigger a re-render after loading products
+        }
+    }
+
+    private async Task LoadCart()
+    {
+
+        ShoppingCarts = await _cartRepository.GetAllAsync(OrderHeader.UserId);
+
+        OrderHeader.OrderTotal = 0;
+        TotalItems = 0;
+
+        if (ShoppingCarts == null || !ShoppingCarts.Any())
+        {
+            return;
+        }
+
+        foreach (var cart in ShoppingCarts)
+        {
+            OrderHeader.OrderTotal += (Convert.ToDouble(cart.Product.Price) * cart.Count);
+            TotalItems += cart.Count;
+        }
+
+        OrderHeader.OrderTotal = Math.Round(OrderHeader.OrderTotal, 2);
+
+    }
+
+
+    private async Task UpdateCartItem(int productId, int updateBy)
+    {
+
+        var result = await _cartRepository.UpdateCartAsync(OrderHeader.UserId, productId, updateBy);
+        await LoadCart();
+
+    }
+
+    private async Task ProcessOrderCreation()
+    {
+
+    }
 
 }
