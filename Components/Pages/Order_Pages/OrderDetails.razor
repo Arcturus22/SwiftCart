@@ -62,22 +62,22 @@ else
 
                 <div class="row">
                     <div class="col-5">
-                        <a href="/order/list" class="btn btn-secondary  m-2 p-2" style="width:150px;">Back to Orders</a>
+                        <a href="/order/list" class="btn btn-secondary  m-2 p-2" style="width:150px;">Back to Order List</a>
                     </div>
                     <div class="col-7 text-end">
 
                         @if (OrderHeader.Status != SD.StatusCancelled && OrderHeader.Status != SD.StatusCompleted
                                             && _AuthenticationStateProvider.GetAuthenticationStateAsync().GetAwaiter().GetResult().User?.IsInRole(SD.Role_Admin) == true )
                         {
-                            <button class="btn btn-danger m-2 p-2" @onclick="() => UpdateStatus(SD.StatusCancelled)" style="width:150px;">Cancelled</button>
+                            <button class="btn btn-danger m-2 p-2" @onclick="() => UpdateStatus(SD.StatusCancelled)" style="width:150px;">Cancel Order</button>
 
-                            @if (OrderHeader.Status == SD.StatusPending)
+                            @if (OrderHeader.Status == SD.StatusApproved)
                             {
                                 <button class="btn btn-primary m-2 p-2" @onclick="() => UpdateStatus(SD.StatusReadyForPickUp)" style="width:150px;">Ready for Pickup</button>
                             }
                             @if (OrderHeader.Status == SD.StatusReadyForPickUp)
                             {
-                                <button class="btn btn-success m-2 p-2" @onclick="() => UpdateStatus(SD.StatusCompleted)" style="width:150px;">Completed</button>
+                                <button class="btn btn-success m-2 p-2" @onclick="() => UpdateStatus(SD.StatusCompleted)" style="width:150px;">Order Completed</button>
                             }
                         }
                     </div>
@@ -105,7 +105,7 @@ else
     {
         if (firstRender)
         {
-
+            index = 1;
             await LoadOrder();
             IsProcessing = false;
             // Invoked only the first render
@@ -121,7 +121,7 @@ else
 
     private async Task UpdateStatus( string newStatus)
     {
-        await _orderRepository.UpdateStatusAsync(Id, newStatus);
+        await _orderRepository.UpdateStatusAsync(Id, newStatus,"");
         _JS.ToastrSuccess("Status Updated successfully to " + newStatus + " !");
     }
 

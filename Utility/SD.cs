@@ -11,7 +11,8 @@ namespace SwiftCart.Utility
 
         //public static readonly IEnumerable<string> Roles = new[] { Role_Admin, Role_Customer };
 
-        public static string StatusPending = "Pending";
+        public static string StatusPending = "Pending"; // Payment Not Done
+        public static string StatusApproved = "Approved"; // Payment Done
         public static string StatusReadyForPickUp = "ReadyForPickUp ";
         public static string StatusCompleted= "Completed";
         public static string StatusCancelled = "Cancelled";

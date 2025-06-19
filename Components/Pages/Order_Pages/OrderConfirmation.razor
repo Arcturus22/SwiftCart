@@ -1,4 +1,8 @@
-﻿@page "/order/confirmation/{orderId}"
+﻿@page "/order/confirmation/{session_id}"
+@using SwiftCart.Services
+@using SwiftCart.Utility
+@inject PaymentService _paymentService
+@inject IShoppingCartRepository _cartRepository
 
 @if (IsProcessing)
 {
@@ -11,7 +15,7 @@ else
     <div class="text-center">
         <p class="text-success display-6 fw-semibold pt-3 text-success"> You're now one bite away from heavenly food!!</p>
         <p class="lead">Your order is confirmed! Please note your Order ID for any query.</p>
-        <p class="lead">Order ID: <b>@orderId</b> </p>
+        <p class="lead">Order ID: <b>@orderHeader.Id</b> </p>
 
         <hr/>
         <img class="img-fluid h-auto my-3" style="max-width:40%" src="/images/lawn_leaf.jpg" alt="Delicious food illustration" />
@@ -28,11 +32,18 @@ else
 
 @code {
     [Parameter]
-    public string orderId { get; set; }
+    public string session_id { get; set; }
     private bool IsProcessing { get; set; } = true;
+    private OrderHeader orderHeader { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        orderHeader = await _paymentService.CheckPaymentStatusAndUpdateOrder(session_id);
+        if(orderHeader.Status == SD.StatusApproved)
+        {
+            await _cartRepository.ClearCartAsync(orderHeader.UserId);
+        }
+
         IsProcessing = false;
     }
 }
