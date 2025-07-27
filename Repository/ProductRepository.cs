@@ -37,6 +37,7 @@ namespace SwiftCart.Repository
             }
             return obj;
         }
+
         public async Task<bool> DeleteAsync(int id)
         {
          
@@ -52,6 +53,7 @@ namespace SwiftCart.Repository
             }
             return false;
         }
+
         public async Task<Product> GetAsync(int id)
         {
             var obj = await _db.Product.FirstOrDefaultAsync(c => c.Id == id);

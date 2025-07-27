@@ -1,6 +1,10 @@
 ﻿@page "/category"
+@using Microsoft.AspNetCore.Authorization
+@using SwiftCart.Utility
 @inject ICategoryRepository _categoryRepository
 @inject IJSRuntime _JS
+
+@attribute [Authorize(Roles = SD.Role_Admin)]
 
 <BsModal OnModalConfirmation="ConfirmDeleteClick" ButtonBootStrapStyle="btn-danger"
     ButtonText="Delete"
